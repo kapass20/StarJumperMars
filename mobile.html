@@ -32,7 +32,8 @@
       left: { x: 10, y: 0, width: 50, height: 50 },
       right: { x: 70, y: 0, width: 50, height: 50 },
       jump: { x: 0, y: 0, width: 50, height: 50 },
-      restart: { x: 0, y: 0, width: 50, height: 50 }
+      restart: { x: 0, y: 0, width: 50, height: 50 },
+      start: { x: 0, y: 0, width: 100, height: 50 } // New start button for title screen
     };
 
     function resizeCanvas() {
@@ -55,6 +56,10 @@
       touchControls.jump.x = canvas.width - 70 * scale;
       touchControls.restart.y = canvas.height / 2 + 50 * scale;
       touchControls.restart.x = canvas.width / 2 - 25 * scale;
+      touchControls.start.x = canvas.width / 2 - 50 * scale;
+      touchControls.start.y = 330 * scale; // Below "Press Enter to Start"
+      touchControls.start.width = 100 * scale;
+      touchControls.start.height = 50 * scale;
     }
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
@@ -85,6 +90,7 @@
     let touchLeft = false;
     let touchRight = false;
     let touchJump = false;
+    let touchStart = false;
 
     // Game variables
     const gravity = 0.6;
@@ -104,12 +110,18 @@
         const touchX = touch.clientX - rect.left;
         const touchY = touch.clientY - rect.top;
         console.log(`Touch start: x=${touchX}, y=${touchY}`);
-        if (touchX >= touchControls.left.x && touchX <= touchControls.left.x + touchControls.left.width &&
-            touchY >= touchControls.left.y && touchY <= touchControls.left.y + touchControls.left.height) touchLeft = true;
-        if (touchX >= touchControls.right.x && touchX <= touchControls.right.x + touchControls.right.width &&
-            touchY >= touchControls.right.y && touchY <= touchControls.right.y + touchControls.right.height) touchRight = true;
-        if (touchX >= touchControls.jump.x && touchX <= touchControls.jump.x + touchControls.jump.width &&
-            touchY >= touchControls.jump.y && touchY <= touchControls.jump.y + touchControls.jump.height) touchJump = true;
+        if (gameState === STATE_TITLE && touchX >= touchControls.start.x && touchX <= touchControls.start.x + touchControls.start.width &&
+            touchY >= touchControls.start.y && touchY <= touchControls.start.y + touchControls.start.height) {
+          touchStart = true;
+        }
+        if (gameState === STATE_PLAYING) {
+          if (touchX >= touchControls.left.x && touchX <= touchControls.left.x + touchControls.left.width &&
+              touchY >= touchControls.left.y && touchY <= touchControls.left.y + touchControls.left.height) touchLeft = true;
+          if (touchX >= touchControls.right.x && touchX <= touchControls.right.x + touchControls.right.width &&
+              touchY >= touchControls.right.y && touchY <= touchControls.right.y + touchControls.right.height) touchRight = true;
+          if (touchX >= touchControls.jump.x && touchX <= touchControls.jump.x + touchControls.jump.width &&
+              touchY >= touchControls.jump.y && touchY <= touchControls.jump.y + touchControls.jump.height) touchJump = true;
+        }
         if (gameState === STATE_GAMEOVER && touchX >= touchControls.restart.x && touchX <= touchControls.restart.x + touchControls.restart.width &&
             touchY >= touchControls.restart.y && touchY <= touchControls.restart.y + touchControls.restart.height) resetGame();
       }
@@ -119,6 +131,7 @@
       touchLeft = false;
       touchRight = false;
       touchJump = false;
+      touchStart = false;
       console.log('Touch end');
     });
 
@@ -258,19 +271,27 @@
 
     // Draw Touch Controls
     function drawTouchControls() {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-      ctx.fillRect(touchControls.left.x, touchControls.left.y, touchControls.left.width, touchControls.left.height);
-      ctx.fillRect(touchControls.right.x, touchControls.right.y, touchControls.right.width, touchControls.right.height);
-      ctx.fillRect(touchControls.jump.x, touchControls.jump.y, touchControls.jump.width, touchControls.jump.height);
-      if (gameState === STATE_GAMEOVER) {
+      if (gameState === STATE_TITLE) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillRect(touchControls.start.x, touchControls.start.y, touchControls.start.width, touchControls.start.height);
+        ctx.fillStyle = 'white';
+        ctx.font = '20px Arial';
+        ctx.fillText('Start', touchControls.start.x + 30 * scale, touchControls.start.y + 30 * scale);
+      } else if (gameState === STATE_PLAYING) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillRect(touchControls.left.x, touchControls.left.y, touchControls.left.width, touchControls.left.height);
+        ctx.fillRect(touchControls.right.x, touchControls.right.y, touchControls.right.width, touchControls.right.height);
+        ctx.fillRect(touchControls.jump.x, touchControls.jump.y, touchControls.jump.width, touchControls.jump.height);
+        ctx.fillStyle = 'white';
+        ctx.font = '20px Arial';
+        ctx.fillText('←', touchControls.left.x + 15, touchControls.left.y + 30);
+        ctx.fillText('→', touchControls.right.x + 15, touchControls.right.y + 30);
+        ctx.fillText('↑', touchControls.jump.x + 15, touchControls.jump.y + 30);
+      } else if (gameState === STATE_GAMEOVER) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
         ctx.fillRect(touchControls.restart.x, touchControls.restart.y, touchControls.restart.width, touchControls.restart.height);
-      }
-      ctx.fillStyle = 'white';
-      ctx.font = '20px Arial';
-      ctx.fillText('←', touchControls.left.x + 15, touchControls.left.y + 30);
-      ctx.fillText('→', touchControls.right.x + 15, touchControls.right.y + 30);
-      ctx.fillText('↑', touchControls.jump.x + 15, touchControls.jump.y + 30);
-      if (gameState === STATE_GAMEOVER) {
+        ctx.fillStyle = 'white';
+        ctx.font = '20px Arial';
         ctx.fillText('R', touchControls.restart.x + 15, touchControls.restart.y + 30);
       }
     }
@@ -290,9 +311,10 @@
     function update() {
       if (gameState === STATE_TITLE) {
         drawTitleScreen();
-        if (keys['enter'] || touchJump) {
+        drawTouchControls();
+        if (keys['enter'] || touchStart) {
           gameState = STATE_PLAYING;
-          touchJump = false;
+          touchStart = false;
         }
         requestAnimationFrame(update);
         return;
