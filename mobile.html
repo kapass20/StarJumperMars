@@ -11,7 +11,7 @@
   <canvas id="gameCanvas"></canvas>
   <script>
     console.log('Script started');
-    let scale = 1; // Moved to the top to avoid TDZ error
+    let scale = 1;
 
     const canvas = document.getElementById('gameCanvas');
     if (!canvas) {
@@ -28,6 +28,14 @@
     }
     console.log('Canvas context initialized');
 
+    // Moved touchControls before resizeCanvas
+    const touchControls = {
+      left: { x: 10, y: 0, width: 50, height: 50 },  // y will be set in resizeCanvas
+      right: { x: 70, y: 0, width: 50, height: 50 },
+      jump: { x: canvas.width - 70, y: 0, width: 50, height: 50 },
+      restart: { x: canvas.width / 2 - 25, y: 0, width: 50, height: 50 }
+    };
+
     function resizeCanvas() {
       canvas.width = window.innerWidth || 800;
       canvas.height = (window.innerHeight * 0.9) || 600;
@@ -36,7 +44,9 @@
       touchControls.left.y = canvas.height - 100;
       touchControls.right.y = canvas.height - 100;
       touchControls.jump.y = canvas.height - 100;
+      touchControls.jump.x = canvas.width - 70; // Adjust for canvas width
       touchControls.restart.y = canvas.height / 2 + 50;
+      touchControls.restart.x = canvas.width / 2 - 25;
     }
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
@@ -63,16 +73,10 @@
     // Laser trap
     let laser = { x: 0, y: 450, width: 200, height: 10, speed: 3.5, direction: 1, pause: 0, targetY: 450, flicker: 0 };
 
-    // Touch controls
+    // Touch controls state
     let touchLeft = false;
     let touchRight = false;
     let touchJump = false;
-    const touchControls = {
-      left: { x: 10, y: canvas.height - 100, width: 50, height: 50 },
-      right: { x: 70, y: canvas.height - 100, width: 50, height: 50 },
-      jump: { x: canvas.width - 70, y: canvas.height - 100, width: 50, height: 50 },
-      restart: { x: canvas.width / 2 - 25, y: canvas.height / 2 + 50, width: 50, height: 50 }
-    };
 
     // Game variables
     const gravity = 0.6;
