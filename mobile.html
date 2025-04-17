@@ -4,7 +4,7 @@
   <title>Star Jumper: Mars Mission</title>
   <style>
     canvas { border: 1px solid black; touch-action: none; }
-    body { margin: 0; padding: 0; overflow: hidden; }
+    body { margin: 0; padding: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #000; }
   </style>
 </head>
 <body>
@@ -28,25 +28,33 @@
     }
     console.log('Canvas context initialized');
 
-    // Moved touchControls before resizeCanvas
     const touchControls = {
-      left: { x: 10, y: 0, width: 50, height: 50 },  // y will be set in resizeCanvas
+      left: { x: 10, y: 0, width: 50, height: 50 },
       right: { x: 70, y: 0, width: 50, height: 50 },
-      jump: { x: canvas.width - 70, y: 0, width: 50, height: 50 },
-      restart: { x: canvas.width / 2 - 25, y: 0, width: 50, height: 50 }
+      jump: { x: 0, y: 0, width: 50, height: 50 },
+      restart: { x: 0, y: 0, width: 50, height: 50 }
     };
 
     function resizeCanvas() {
-      canvas.width = window.innerWidth || 800;
-      canvas.height = (window.innerHeight * 0.9) || 600;
-      scale = Math.min(canvas.width / 800, canvas.height / 600);
+      const targetWidth = 800;
+      const targetHeight = 600;
+      const aspectRatio = targetWidth / targetHeight;
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      const currentAspect = canvas.width / canvas.height;
+      if (currentAspect > aspectRatio) {
+        canvas.width = canvas.height * aspectRatio;
+      } else {
+        canvas.height = canvas.width / aspectRatio;
+      }
+      scale = Math.min(canvas.width / targetWidth, canvas.height / targetHeight);
       console.log(`Canvas resized: width=${canvas.width}, height=${canvas.height}, scale=${scale}`);
-      touchControls.left.y = canvas.height - 100;
-      touchControls.right.y = canvas.height - 100;
-      touchControls.jump.y = canvas.height - 100;
-      touchControls.jump.x = canvas.width - 70; // Adjust for canvas width
-      touchControls.restart.y = canvas.height / 2 + 50;
-      touchControls.restart.x = canvas.width / 2 - 25;
+      touchControls.left.y = canvas.height - 100 * scale;
+      touchControls.right.y = canvas.height - 100 * scale;
+      touchControls.jump.y = canvas.height - 100 * scale;
+      touchControls.jump.x = canvas.width - 70 * scale;
+      touchControls.restart.y = canvas.height / 2 + 50 * scale;
+      touchControls.restart.x = canvas.width / 2 - 25 * scale;
     }
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
@@ -58,20 +66,20 @@
     let gameState = STATE_TITLE;
 
     // Player (Mars Rover)
-    let player = { x: 50, y: 550, width: 30, height: 30, speed: 5, dy: 0, jumpPower: -15, isJumping: false };
+    let player = { x: 50 * scale, y: 550 * scale, width: 30 * scale, height: 30 * scale, speed: 5, dy: 0, jumpPower: -15, isJumping: false };
 
     // Platforms
     let platforms = [
-      { x: 0, y: 580, width: 800, height: 20 },
-      { x: 200, y: 400, width: 150, height: 20 },
-      { x: 450, y: 300, width: 150, height: 20 }
+      { x: 0 * scale, y: 580 * scale, width: 800 * scale, height: 20 * scale },
+      { x: 200 * scale, y: 400 * scale, width: 150 * scale, height: 20 * scale },
+      { x: 450 * scale, y: 300 * scale, width: 150 * scale, height: 20 * scale }
     ];
 
     // Mars Rock
-    let rock = { x: 600, y: 250, width: 20, height: 20, collected: false, flash: 0 };
+    let rock = { x: 600 * scale, y: 250 * scale, width: 20 * scale, height: 20 * scale, collected: false, flash: 0 };
 
     // Laser trap
-    let laser = { x: 0, y: 450, width: 200, height: 10, speed: 3.5, direction: 1, pause: 0, targetY: 450, flicker: 0 };
+    let laser = { x: 0 * scale, y: 450 * scale, width: 200 * scale, height: 10 * scale, speed: 3.5, direction: 1, pause: 0, targetY: 450 * scale, flicker: 0 };
 
     // Touch controls state
     let touchLeft = false;
@@ -117,21 +125,21 @@
     // Reset game
     function resetGame() {
       _records = {};
-      player.x = 50;
-      player.y = 550;
+      player.x = 50 * scale;
+      player.y = 550 * scale;
       player.dy = 0;
       player.isJumping = false;
       score = 0;
       gameSpeed = 1;
-      laser.x = 0;
-      laser.y = 450;
-      laser.targetY = 450;
+      laser.x = 0 * scale;
+      laser.y = 450 * scale;
+      laser.targetY = 450 * scale;
       laser.direction = 1;
       laser.pause = 0;
       laser.flicker = 0;
       rock.collected = false;
-      rock.x = 600;
-      rock.y = 250;
+      rock.x = 600 * scale;
+      rock.y = 250 * scale;
       rock.flash = 0;
       gameState = STATE_TITLE;
       console.log('Game reset');
@@ -147,7 +155,7 @@
         rock.y = platform.y - rock.height;
       } else {
         rock.x = platform.x + Math.random() * (platform.width - rock.width);
-        rock.y = platform.y - rock.height - 50 - Math.random() * 50;
+        rock.y = platform.y - rock.height - 50 * scale - Math.random() * 50 * scale;
       }
       rock.collected = false;
       rock.flash = 30;
@@ -157,23 +165,23 @@
     // Draw Mars Rover
     function drawRover(x, y, width, height) {
       ctx.fillStyle = '#808080';
-      ctx.fillRect(x * scale, y * scale, width * scale, height * scale - 15 * scale);
+      ctx.fillRect(x, y, width, height - 15 * scale);
       ctx.fillStyle = 'black';
       ctx.beginPath();
-      ctx.arc(x * scale + 8 * scale, y * scale + height * scale - 5 * scale, 5 * scale, 0, Math.PI * 2);
-      ctx.arc(x * scale + width * scale - 8 * scale, y * scale + height * scale - 5 * scale, 5 * scale, 0, Math.PI * 2);
+      ctx.arc(x + 8 * scale, y + height - 5 * scale, 5 * scale, 0, Math.PI * 2);
+      ctx.arc(x + width - 8 * scale, y + height - 5 * scale, 5 * scale, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = '#D3D3D3';
-      ctx.fillRect(x * scale + 10 * scale, y * scale + 2 * scale, (width - 20) * scale, 3 * scale);
+      ctx.fillRect(x + 10 * scale, y + 2 * scale, (width - 20) * scale, 3 * scale);
       ctx.strokeStyle = 'black';
       ctx.lineWidth = 1 * scale;
       ctx.beginPath();
-      ctx.moveTo(x * scale + width * scale / 2, y * scale + 5 * scale);
-      ctx.lineTo(x * scale + width * scale / 2, y * scale - 5 * scale);
+      ctx.moveTo(x + width / 2, y + 5 * scale);
+      ctx.lineTo(x + width / 2, y - 5 * scale);
       ctx.stroke();
       ctx.fillStyle = 'black';
       ctx.beginPath();
-      ctx.arc(x * scale + width * scale / 2, y * scale + 10 * scale, 2 * scale, 0, Math.PI * 2);
+      ctx.arc(x + width / 2, y + 10 * scale, 2 * scale, 0, Math.PI * 2);
       ctx.fill();
     }
 
@@ -181,19 +189,19 @@
     function drawRock(x, y, width, height, flash) {
       ctx.fillStyle = flash > 0 ? 'white' : '#8B4513';
       ctx.beginPath();
-      ctx.moveTo(x * scale + width * scale / 2, y * scale);
+      ctx.moveTo(x + width / 2, y);
       for (let i = 0; i <= Math.PI * 2; i += 0.1) {
-        let radius = (width * scale / 2) * (0.9 + Math.random() * 0.2);
-        ctx.lineTo(x * scale + width * scale / 2 + Math.cos(i) * radius, y * scale + height * scale / 2 + Math.sin(i) * radius);
+        let radius = (width / 2) * (0.9 + Math.random() * 0.2);
+        ctx.lineTo(x + width / 2 + Math.cos(i) * radius, y + height / 2 + Math.sin(i) * radius);
       }
       ctx.closePath();
       ctx.fill();
       ctx.fillStyle = '#5C4033';
       ctx.beginPath();
-      ctx.moveTo(x * scale + width * scale / 2, y * scale + height * scale / 2);
+      ctx.moveTo(x + width / 2, y + height / 2);
       for (let i = 0; i <= Math.PI; i += 0.1) {
-        let radius = (width * scale / 4) * (0.9 + Math.random() * 0.2);
-        ctx.lineTo(x * scale + width * scale / 2 + Math.cos(i) * radius, y * scale + height * scale / 2 + Math.sin(i) * radius + 5 * scale);
+        let radius = (width / 4) * (0.9 + Math.random() * 0.2);
+        ctx.lineTo(x + width / 2 + Math.cos(i) * radius, y + height / 2 + Math.sin(i) * radius + 5 * scale);
       }
       ctx.closePath();
       ctx.fill();
@@ -202,10 +210,10 @@
     // Draw Laser with glow
     function drawLaser(x, y, width, height, flicker) {
       ctx.fillStyle = flicker > 0 ? '#FF4500' : 'red';
-      ctx.fillRect(x * scale, y * scale, width * scale, height * scale);
+      ctx.fillRect(x, y, width, height);
       ctx.strokeStyle = '#FFA500';
       ctx.lineWidth = 2 * scale;
-      ctx.strokeRect(x * scale - 1 * scale, y * scale - 1 * scale, width * scale + 2 * scale, height * scale + 2 * scale);
+      ctx.strokeRect(x - 1 * scale, y - 1 * scale, width + 2 * scale, height + 2 * scale);
       laser.flicker = (laser.flicker + 1) % 10;
     }
 
@@ -239,11 +247,11 @@
     // Draw Rocky Platforms
     function drawPlatform(x, y, width, height) {
       ctx.fillStyle = '#696969';
-      ctx.fillRect(x * scale, y * scale, width * scale, height * scale);
+      ctx.fillRect(x, y, width, height);
       ctx.fillStyle = '#A9A9A9';
       for (let i = 0; i < 10; i++) {
         ctx.beginPath();
-        ctx.arc(x * scale + Math.random() * width * scale, y * scale + Math.random() * height * scale, 2 * scale, 0, Math.PI * 2);
+        ctx.arc(x + Math.random() * width, y + Math.random() * height, 2 * scale, 0, Math.PI * 2);
         ctx.fill();
       }
     }
@@ -395,12 +403,12 @@
         if (laser.x <= 0) {
           laser.direction = 1;
           laser.pause = 30;
-          laser.targetY = 420 + Math.random() * 100;
+          laser.targetY = 420 * scale + Math.random() * 100 * scale;
         }
         if (laser.x >= canvas.width - laser.width) {
           laser.direction = -1;
           laser.pause = 30;
-          laser.targetY = 420 + Math.random() * 100;
+          laser.targetY = 420 * scale + Math.random() * 100 * scale;
         }
       }
 
@@ -450,8 +458,8 @@
       // Draw score and speed
       ctx.fillStyle = 'black';
       ctx.font = '20px Arial';
-      ctx.fillText('Score: ' + score, canvas.width / 2 - 50, 30);
-      ctx.fillText('Speed: ' + gameSpeed.toFixed(1) + 'x', canvas.width / 2 - 50, 60);
+      ctx.fillText('Score: ' + score, canvas.width / 2 - 50 * scale, 30 * scale);
+      ctx.fillText('Speed: ' + gameSpeed.toFixed(1) + 'x', canvas.width / 2 - 50 * scale, 60 * scale);
 
       // Draw touch controls
       drawTouchControls();
