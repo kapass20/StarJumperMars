@@ -3,7 +3,7 @@
 <head>
   <title>Star Jumper: Mars Mission</title>
   <style>
-    canvas { border: 1px solid black; touch-action: none; } /* Disable default touch actions */
+    canvas { border: 1px solid black; touch-action: none; }
     body { margin: 0; padding: 0; overflow: hidden; }
   </style>
 </head>
@@ -11,13 +11,15 @@
   <canvas id="gameCanvas"></canvas>
   <script>
     const canvas = document.getElementById('gameCanvas');
+    if (!canvas.getContext) {
+      alert('Canvas not supported by your browser!');
+      throw new Error('Canvas not supported');
+    }
     const ctx = canvas.getContext('2d');
-
-    // Resize canvas to fit screen
     function resizeCanvas() {
       canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight * 0.9; // Use 90% of height for gameplay
-      scale = Math.min(canvas.width / 800, canvas.height / 600); // Scale factor
+      canvas.height = window.innerHeight * 0.9;
+      scale = Math.min(canvas.width / 800, canvas.height / 600);
     }
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
@@ -258,7 +260,7 @@
         drawTitleScreen();
         if (keys['enter'] || touchJump) {
           gameState = STATE_PLAYING;
-          touchJump = false; // Reset touch jump for start
+          touchJump = false;
         }
         requestAnimationFrame(update);
         return;
@@ -329,7 +331,7 @@
       if ((keys[' '] || touchJump) && !player.isJumping) {
         player.dy = player.jumpPower;
         player.isJumping = true;
-        touchJump = false; // Reset touch jump after use
+        touchJump = false;
       }
 
       // Collision with platforms
