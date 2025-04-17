@@ -11,15 +11,28 @@
   <canvas id="gameCanvas"></canvas>
   <script>
     const canvas = document.getElementById('gameCanvas');
-    if (!canvas.getContext) {
-      alert('Canvas not supported by your browser!');
-      throw new Error('Canvas not supported');
+    if (!canvas) {
+      console.error('Canvas element not found!');
+      document.body.innerHTML = 'Error: Canvas not found. Please check your browser.';
+      throw new Error('Canvas not found');
     }
     const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      console.error('Canvas context not supported!');
+      document.body.innerHTML = 'Error: Canvas not supported by your browser.';
+      throw new Error('Canvas context not supported');
+    }
+    console.log('Canvas initialized successfully');
+
     function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight * 0.9;
+      canvas.width = window.innerWidth || 800;
+      canvas.height = (window.innerHeight * 0.9) || 600;
       scale = Math.min(canvas.width / 800, canvas.height / 600);
+      console.log(`Canvas resized: width=${canvas.width}, height=${canvas.height}, scale=${scale}`);
+      touchControls.left.y = canvas.height - 100;
+      touchControls.right.y = canvas.height - 100;
+      touchControls.jump.y = canvas.height - 100;
+      touchControls.restart.y = canvas.height / 2 + 50;
     }
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
@@ -75,6 +88,7 @@
         const rect = canvas.getBoundingClientRect();
         const touchX = touch.clientX - rect.left;
         const touchY = touch.clientY - rect.top;
+        console.log(`Touch start: x=${touchX}, y=${touchY}`);
         if (touchX >= touchControls.left.x && touchX <= touchControls.left.x + touchControls.left.width &&
             touchY >= touchControls.left.y && touchY <= touchControls.left.y + touchControls.left.height) touchLeft = true;
         if (touchX >= touchControls.right.x && touchX <= touchControls.right.x + touchControls.right.width &&
@@ -90,6 +104,7 @@
       touchLeft = false;
       touchRight = false;
       touchJump = false;
+      console.log('Touch end');
     });
 
     // Reset game
@@ -112,6 +127,7 @@
       rock.y = 250;
       rock.flash = 0;
       gameState = STATE_TITLE;
+      console.log('Game reset');
     }
 
     // Respawn rock
@@ -128,6 +144,7 @@
       }
       rock.collected = false;
       rock.flash = 30;
+      console.log(`Rock respawned at x=${rock.x}, y=${rock.y}`);
     }
 
     // Draw Mars Rover
