@@ -10,19 +10,21 @@
 <body>
   <canvas id="gameCanvas"></canvas>
   <script>
+    console.log('Script started');
     const canvas = document.getElementById('gameCanvas');
     if (!canvas) {
       console.error('Canvas element not found!');
       document.body.innerHTML = 'Error: Canvas not found. Please check your browser.';
       throw new Error('Canvas not found');
     }
+    console.log('Canvas element found');
     const ctx = canvas.getContext('2d');
     if (!ctx) {
       console.error('Canvas context not supported!');
       document.body.innerHTML = 'Error: Canvas not supported by your browser.';
       throw new Error('Canvas context not supported');
     }
-    console.log('Canvas initialized successfully');
+    console.log('Canvas context initialized');
 
     function resizeCanvas() {
       canvas.width = window.innerWidth || 800;
